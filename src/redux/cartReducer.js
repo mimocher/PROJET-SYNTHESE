@@ -9,6 +9,7 @@ const initialState = {
   discount: 0,
   discountPercent: 0,
   total: 0
+  
 };
 
 const recalculateTotals = (items, discountPercent = 0) => {

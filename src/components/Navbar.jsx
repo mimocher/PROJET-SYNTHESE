@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/authActions';
 import '../styles/Navbar.css';
+import dental from '../assets/dental.png'
+
 
 /* ── SVG Tooth icon (fallback logo) ── */
 const ToothIcon = () => (
@@ -22,7 +24,7 @@ const CartIcon = () => (
   </svg>
 );
 
-const Navbar = ({ logoSrc = null }) => {
+const Navbar = ({ logoSrc = dental }) => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 

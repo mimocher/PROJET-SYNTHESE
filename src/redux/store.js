@@ -1,15 +1,14 @@
-// src/redux/store.js
 import { createStore, combineReducers } from 'redux';
 
-// ── Tes reducers existants ────────────────────────────────────────────────────
-import authReducer    from './authReducer';
-import cartReducer    from './cartReducer';
+// ── Existants ─────────────────────────────────────────────────────────────────
+import authReducer from './authReducer';
+import cartReducer from './cartReducer';
 import invoiceReducer from './invoiceReducer';
 
-// ── Reducers secrétaire ───────────────────────────────────────────────────────
+// ── Secrétaire ────────────────────────────────────────────────────────────────
 import { patientsReducer, rdvReducer, facturesReducer } from './secretaireReducer';
 
-// ── Reducers dentiste ─────────────────────────────────────────────────────────
+// ── Dentiste ──────────────────────────────────────────────────────────────────
 import {
   planningReducer,
   dossiersReducer,
@@ -18,23 +17,29 @@ import {
   statsReducer,
 } from './dentisteReducer';
 
+// ── Patient ───────────────────────────────────────────────────────────────────
+import patientReducer from './patientReducer';
+
 const rootReducer = combineReducers({
   // existants
-  auth:     authReducer,
-  cart:     cartReducer,
+  auth: authReducer,
+  cart: cartReducer,
   invoices: invoiceReducer,
 
   // secrétaire
   patients: patientsReducer,
-  rdv:      rdvReducer,
+  rdv: rdvReducer,
   factures: facturesReducer,
 
   // dentiste
-  planning:    planningReducer,
-  dossiers:    dossiersReducer,
+  planning: planningReducer,
+  dossiers: dossiersReducer,
   traitements: traitementsReducer,
   ordonnances: ordonnancesReducer,
-  stats:       statsReducer,
+  stats: statsReducer,
+
+  // patient
+  patient: patientReducer,
 });
 
 const store = createStore(

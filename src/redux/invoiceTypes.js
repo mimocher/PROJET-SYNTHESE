@@ -1,4 +1,4 @@
-// src/redux/invoiceTypes.js
+
 export const CREATE_INVOICE = 'CREATE_INVOICE';
 export const UPDATE_INVOICE_STATUS = 'UPDATE_INVOICE_STATUS';
 export const CANCEL_INVOICE = 'CANCEL_INVOICE';

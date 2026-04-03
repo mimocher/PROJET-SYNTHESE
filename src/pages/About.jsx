@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/About.css';
 
+/* ── Icons ── */
 const IconMapPin = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
     fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -42,54 +43,225 @@ const IconCar = () => (
   </svg>
 );
 
-/* ── Composant ── */
+const IconAward = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="6"/>
+    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+  </svg>
+);
+
+/* ── Data ── */
+const timelineItems = [
+  {
+    year: '2005',
+    title: 'Diplôme de Chirurgie Dentaire',
+    desc: "Faculté de Médecine Dentaire, Université Hassan II, Casablanca — Mention Très Honorable.",
+  },
+  {
+    year: '2007',
+    title: 'Ouverture du cabinet Bright Smile',
+    desc: "Premier cabinet au Boulevard Anfa, avec une vision : des soins accessibles et d'excellence.",
+  },
+  {
+    year: '2013',
+    title: 'Spécialisation en implantologie',
+    desc: "Formation avancée en implants dentaires à Paris, intégration des protocoles modernes.",
+  },
+  {
+    year: '2019',
+    title: 'Modernisation complète du cabinet',
+    desc: "Acquisition d'un scanner 3D CBCT et d'équipements de dernière génération.",
+  },
+  {
+    year: '2024',
+    title: '+ de 5 000 patients accompagnés',
+    desc: "Un cabinet de confiance ancré dans la vie du quartier Anfa à Casablanca.",
+  },
+];
+
+const equipements = [
+  {
+    title: 'Scanner 3D CBCT',
+    desc: "Imagerie volumétrique haute définition pour un diagnostic précis, indispensable en implantologie et chirurgie complexe.",
+  },
+  {
+    title: 'Radiographie numérique',
+    desc: "Images instantanées avec une irradiation minimale, visualisées et commentées avec vous en temps réel.",
+  },
+  {
+    title: 'Laser dentaire',
+    desc: "Traitement des gencives et décontamination sans douleur, pour une cicatrisation rapide et confortable.",
+  },
+  {
+    title: 'Stérilisation classe B',
+    desc: "Protocoles stricts, matériel stérilisé à l'autoclave certifié, traçabilité complète à chaque séance.",
+  },
+];
+
+const formations = [
+  {
+    year: '2005',
+    title: 'Doctorat en Médecine Dentaire',
+    lieu: 'Université Hassan II, Casablanca — Mention Très Honorable',
+  },
+  {
+    year: '2013',
+    title: "Diplôme Universitaire d'Implantologie",
+    lieu: 'Université Paris Diderot — Implants et chirurgie osseuse',
+  },
+  {
+    year: '2018',
+    title: 'Certification en dentisterie esthétique',
+    lieu: 'Académie du Sourire, Barcelone — Facettes, blanchiment, composite',
+  },
+  {
+    year: '2023',
+    title: 'Membre actif — Association Marocaine de Dentisterie',
+    lieu: 'Congrès annuels nationaux et internationaux',
+  },
+];
+
+/* ══════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════ */
 const About = () => {
   return (
     <div className="about-page">
       <section className="about-section">
 
-        {/* ── Header ── */}
+        {/* ════════════════════════
+            HEADER
+        ════════════════════════ */}
         <div className="section-header">
-          <div className="section-badge">Notre Histoire</div>
-          <h2 className="section-title">
-            À propos <em>de nous</em>
-          </h2>
+          <div className="section-badge">À propos</div>
+          <h1 className="section-title">
+            Dr. Jalal Alami<br />
+            <em>Bright Smile</em>
+          </h1>
           <p className="section-subtitle">
-            Une passion pour l'excellence dentaire depuis plus de 20 ans
+            Chirurgien-dentiste à Casablanca, engagé depuis plus de 15 ans
+            à offrir des soins dentaires d'excellence dans un cadre humain et moderne.
           </p>
         </div>
 
-       
-
-        {/* ── Mission & valeurs ── */}
+        {/* ════════════════════════
+            PORTRAIT + BIO
+        ════════════════════════ */}
         <div className="about-grid">
           <div className="about-image">
             <img
-              src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=600&fit=crop&q=85"
-              alt="Notre cabinet dentaire à Casablanca"
+              src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80"
+              alt="Dr. Jalal Alami — Cabinet Bright Smile Casablanca"
             />
           </div>
           <div className="about-text">
-            <h2>Notre mission</h2>
+            <h2>Votre dentiste de confiance</h2>
             <p>
-              Depuis notre création, nous nous engageons à offrir des soins dentaires d'exception
-              en combinant expertise médicale, technologies avancées et approche humaine.
-              Chaque patient bénéficie d'un traitement personnalisé dans un environnement
-              moderne et apaisant.
+              Diplômé de la Faculté de Médecine Dentaire de Casablanca, le Dr. Jalal Alami
+              a consacré sa carrière à une médecine dentaire rigoureuse et bienveillante.
+              Son cabinet, Bright Smile, est le reflet de ses convictions : un espace où
+              la technique la plus avancée se met au service du confort du patient.
             </p>
 
-            <h2>Nos valeurs</h2>
+            <h2>Une philosophie du soin</h2>
+            <p>
+              Convaincu que la santé bucco-dentaire est un pilier du bien-être général,
+              le Dr. Alami aborde chaque consultation avec écoute, transparence et précision.
+              Aucune décision n'est prise sans votre accord éclairé.
+            </p>
+
             <ul className="values-list">
-              <li>Excellence et précision dans chaque intervention</li>
-              <li>Écoute attentive et accompagnement personnalisé</li>
-              <li>Innovation et formation continue</li>
+              <li>Écoute sincère et temps dédié à chaque patient</li>
+              <li>Gestes maîtrisés et protocoles rigoureux</li>
+              <li>Devis détaillés, sans surprise ni pression</li>
+              <li>Formation continue et veille internationale</li>
               <li>Éthique professionnelle irréprochable</li>
             </ul>
           </div>
         </div>
 
-        {/* ── Localisation ── */}
-        <div className="location-section">
+        {/* ════════════════════════
+            PARCOURS / TIMELINE
+        ════════════════════════ */}
+        <div className="section-header">
+          <div className="section-badge">Parcours</div>
+          <h2 className="section-title">
+            Son <em>histoire</em>
+          </h2>
+          <p className="section-subtitle">
+            Un engagement constant envers l'excellence dentaire, depuis 2005.
+          </p>
+        </div>
+
+        <div className="timeline-section">
+          {timelineItems.map((item, i) => (
+            <div className="timeline-item" key={i}>
+              <div className="timeline-year">{item.year}</div>
+              <div className="timeline-dot" />
+              <div className="timeline-content">
+                <h4 className="timeline-title">{item.title}</h4>
+                <p className="timeline-desc">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ════════════════════════
+            ÉQUIPEMENTS
+        ════════════════════════ */}
+        <div className="section-header" style={{ marginTop: '100px' }}>
+          <div className="section-badge">Équipements</div>
+          <h2 className="section-title">
+            Un cabinet <em>de pointe</em>
+          </h2>
+          <p className="section-subtitle">
+            Des technologies modernes au service de votre confort et de la précision des soins.
+          </p>
+        </div>
+
+        <div className="equip-grid">
+          {equipements.map((eq, i) => (
+            <div className="equip-card" key={i}>
+              <div className="equip-number">0{i + 1}</div>
+              <h4 className="equip-title">{eq.title}</h4>
+              <p className="equip-desc">{eq.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ════════════════════════
+            FORMATIONS
+        ════════════════════════ */}
+        <div className="section-header" style={{ marginTop: '100px' }}>
+          <div className="section-badge">Certifications</div>
+          <h2 className="section-title">
+            Formations & <em>distinctions</em>
+          </h2>
+          <p className="section-subtitle">
+            Un parcours académique et professionnel en constante évolution.
+          </p>
+        </div>
+
+        <div className="formations-list">
+          {formations.map((f, i) => (
+            <div className="formation-item" key={i}>
+              <div className="formation-year">{f.year}</div>
+              <div className="formation-body">
+                <div className="formation-icon"><IconAward /></div>
+                <div>
+                  <h4 className="formation-title">{f.title}</h4>
+                  <p className="formation-lieu">{f.lieu}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ════════════════════════
+            LOCALISATION
+        ════════════════════════ */}
+        <div className="location-section" style={{ marginTop: '100px' }}>
           <div className="section-header">
             <div className="section-badge">Nous Trouver</div>
             <h2 className="section-title">
@@ -133,7 +305,7 @@ const About = () => {
                 <div className="info-content">
                   <h4>Horaires d'ouverture</h4>
                   <p>
-                    Lundi – Vendredi : <br />9h00 – 13h00 / 15h00 - 19h00<br />
+                    Lundi – Vendredi :<br />9h00 – 13h00 / 15h00 – 19h00<br />
                     Samedi : 9h00 – 13h00<br />
                     Dimanche : Fermé
                   </p>
@@ -153,14 +325,13 @@ const About = () => {
               </div>
             </div>
 
-            {/* Google Maps embed */}
             <div className="map-embed">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3323.8!2d-7.633!3d33.589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda7cd4786b417af%3A0xb0b6af6d81d7e16f!2sBoulevard+Anfa%2C+Casablanca!5e0!3m2!1sfr!2sma!4v1234567890"
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Localisation Cabinet Dentaire Casablanca"
+                title="Cabinet Bright Smile — Boulevard Anfa, Casablanca"
               />
             </div>
           </div>
@@ -170,4 +341,5 @@ const About = () => {
     </div>
   );
 };
+
 export default About;
