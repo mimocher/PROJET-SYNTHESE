@@ -7,6 +7,7 @@ use App\Models\PlanTraitement;
 use App\Models\SeanceTraitement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+
 class DentistePlanTraitementController extends Controller
 {
     /**
@@ -32,15 +33,15 @@ class DentistePlanTraitementController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'patient_id'         => 'required|exists:patients,id',
-            'titre'              => 'required|string|max:255',
-            'description'        => 'nullable|string',
-            'date_debut'         => 'required|date',
-            'date_fin_prevue'    => 'nullable|date|after_or_equal:date_debut',
-            'cout_total_estime'  => 'nullable|numeric|min:0',
-            'seances'            => 'nullable|array',
-            'seances.*.objectif' => 'required|string|max:255',
-            'seances.*.notes'    => 'nullable|string',
+            'patient_id'          => 'required|exists:patients,id',
+            'titre'               => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'date_debut'          => 'required|date',
+            'date_fin_prevue'     => 'nullable|date|after_or_equal:date_debut',
+            'cout_total_estime'   => 'nullable|numeric|min:0',
+            'seances'             => 'nullable|array',
+            'seances.*.objectif'  => 'required|string|max:255',
+            'seances.*.notes'     => 'nullable|string',
         ]);
 
         $plan = PlanTraitement::create([
@@ -69,7 +70,7 @@ class DentistePlanTraitementController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $plan->load(['patient.user', 'seances']),
-            'message' => 'Plan de traitement créé.',
+            'message' => 'Plan de traitement créé avec succès.',
         ], 201);
     }
 
@@ -86,7 +87,17 @@ class DentistePlanTraitementController extends Controller
             return response()->json(['success' => false, 'message' => 'Plan introuvable.'], 404);
         }
 
-        return response()->json(['success' => true, 'data' => $plan]);
+        $seancesStats = [
+            'total'     => $plan->seances->count(),
+            'planifiees' => $plan->seances->where('statut', 'planifiee')->count(),
+            'realisees'  => $plan->seances->where('statut', 'realisee')->count(),
+            'annulees'   => $plan->seances->where('statut', 'annulee')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data'    => array_merge($plan->toArray(), ['seances_stats' => $seancesStats]),
+        ]);
     }
 
     /**
@@ -118,6 +129,72 @@ class DentistePlanTraitementController extends Controller
     }
 
     /**
+     * DELETE /api/dentiste/plans-traitement/{id}
+     * Supprime uniquement si aucune séance n'est réalisée
+     */
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $plan = PlanTraitement::where('dentiste_id', $request->user()->id)->find($id);
+
+        if (!$plan) {
+            return response()->json(['success' => false, 'message' => 'Plan introuvable.'], 404);
+        }
+
+        if ($plan->seances()->where('statut', 'realisee')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Impossible de supprimer ce plan : des séances ont déjà été réalisées. Vous pouvez le marquer comme "abandonné".',
+            ], 422);
+        }
+
+        $plan->seances()->delete();
+        $plan->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plan de traitement supprimé.',
+        ]);
+    }
+
+    /**
+     * POST /api/dentiste/plans-traitement/{id}/seances
+     * Ajouter une séance à un plan existant
+     */
+    public function storeSeance(Request $request, int $id): JsonResponse
+    {
+        $plan = PlanTraitement::where('dentiste_id', $request->user()->id)->find($id);
+
+        if (!$plan) {
+            return response()->json(['success' => false, 'message' => 'Plan introuvable.'], 404);
+        }
+
+        if ($plan->statut !== 'en_cours') {
+            return response()->json(['success' => false, 'message' => 'Impossible d\'ajouter une séance à un plan ' . $plan->statut . '.'], 422);
+        }
+
+        $request->validate([
+            'objectif' => 'required|string|max:255',
+            'notes'    => 'nullable|string',
+        ]);
+
+        $dernierNumero = $plan->seances()->max('numero_seance') ?? 0;
+
+        $seance = SeanceTraitement::create([
+            'plan_traitement_id' => $plan->id,
+            'numero_seance'      => $dernierNumero + 1,
+            'objectif'           => $request->objectif,
+            'statut'             => 'planifiee',
+            'notes'              => $request->notes,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $seance,
+            'message' => 'Séance ajoutée au plan.',
+        ], 201);
+    }
+
+    /**
      * PATCH /api/dentiste/plans-traitement/{planId}/seances/{seanceId}
      * Mettre à jour le statut d'une séance
      */
@@ -136,23 +213,59 @@ class DentistePlanTraitementController extends Controller
         }
 
         $request->validate([
-            'statut'         => 'required|in:planifiee,realisee,annulee',
-            'consultation_id'=> 'nullable|exists:consultations,id',
-            'notes'          => 'nullable|string',
+            'statut'          => 'required|in:planifiee,realisee,annulee',
+            'consultation_id' => 'nullable|exists:consultations,id',
+            'notes'           => 'nullable|string',
         ]);
 
         $seance->update($request->only(['statut', 'consultation_id', 'notes']));
 
-        // Si toutes les séances sont réalisées ou annulées → terminer le plan
-        $toutTermine = $plan->seances()->whereNotIn('statut', ['realisee', 'annulee'])->doesntExist();
-        if ($toutTermine) {
+        // Si toutes les séances sont réalisées ou annulées → terminer le plan automatiquement
+        $toutTermine = $plan->seances()
+            ->whereNotIn('statut', ['realisee', 'annulee'])
+            ->doesntExist();
+
+        if ($toutTermine && $plan->statut === 'en_cours') {
             $plan->update(['statut' => 'termine']);
         }
 
         return response()->json([
             'success' => true,
-            'data'    => $seance->fresh(),
+            'data'    => [
+                'seance' => $seance->fresh(),
+                'plan'   => $plan->fresh(),
+            ],
             'message' => 'Séance mise à jour.',
+        ]);
+    }
+
+    /**
+     * DELETE /api/dentiste/plans-traitement/{planId}/seances/{seanceId}
+     * Supprime une séance planifiée (pas réalisée)
+     */
+    public function destroySeance(Request $request, int $planId, int $seanceId): JsonResponse
+    {
+        $plan = PlanTraitement::where('dentiste_id', $request->user()->id)->find($planId);
+
+        if (!$plan) {
+            return response()->json(['success' => false, 'message' => 'Plan introuvable.'], 404);
+        }
+
+        $seance = SeanceTraitement::where('plan_traitement_id', $planId)->find($seanceId);
+
+        if (!$seance) {
+            return response()->json(['success' => false, 'message' => 'Séance introuvable.'], 404);
+        }
+
+        if ($seance->statut === 'realisee') {
+            return response()->json(['success' => false, 'message' => 'Impossible de supprimer une séance déjà réalisée.'], 422);
+        }
+
+        $seance->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Séance supprimée.',
         ]);
     }
 }

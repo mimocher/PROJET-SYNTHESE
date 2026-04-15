@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Patient;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Patient\StoreRdvRequest;
+use App\Models\Horaire;
 use App\Models\RendezVous;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -11,6 +12,20 @@ use Illuminate\Http\Request;
 
 class PatientRdvController extends Controller
 {
+    /**
+     * GET /api/patient/dentistes
+     * Liste les dentistes actifs pour la prise de RDV
+     */
+    public function dentistes(): JsonResponse
+    {
+        $dentistes = User::where('role', 'dentiste')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return response()->json(['success' => true, 'data' => $dentistes]);
+    }
+
     /**
      * GET /api/patient/rdv
      * Liste tous les RDV du patient connecté

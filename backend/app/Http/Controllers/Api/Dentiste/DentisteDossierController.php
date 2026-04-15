@@ -21,6 +21,7 @@ class DentisteDossierController extends Controller
         $patients = Patient::with(['user', 'dossierMedical'])
             ->actifs()
             ->when($request->search, fn($q) => $q->search($request->search))
+            ->orderByDesc('id')
             ->paginate($request->per_page ?? 20);
 
         return response()->json(['success' => true, 'data' => $patients]);
@@ -34,8 +35,11 @@ class DentisteDossierController extends Controller
     {
         $patient = Patient::with([
             'user',
+            'dossierMedical',
+            'dossierMedical.consultations'                     => fn($q) => $q->orderByDesc('date_consultation'),
             'dossierMedical.consultations.actes.catalogueActe',
             'dossierMedical.consultations.dentiste:id,name',
+            'plansTraitement'                                  => fn($q) => $q->orderByDesc('date_debut'),
             'plansTraitement.seances',
             'ordonnances' => fn($q) => $q->where('is_archived', false)->orderByDesc('date_ordonnance'),
         ])->find($patientId);
@@ -67,9 +71,7 @@ class DentisteDossierController extends Controller
             'notes_generales'       => 'nullable|string',
         ]);
 
-        $dossier = DossierMedical::firstOrCreate(
-            ['patient_id' => $patient->id],
-        );
+        $dossier = DossierMedical::firstOrCreate(['patient_id' => $patient->id]);
 
         $dossier->update($request->only([
             'groupe_sanguin', 'antecedents_medicaux', 'antecedents_dentaires',
@@ -96,13 +98,13 @@ class DentisteDossierController extends Controller
         }
 
         $request->validate([
-            'rendez_vous_id'   => 'nullable|exists:rendez_vous,id',
-            'date_consultation'=> 'required|date',
-            'motif'            => 'required|string|max:255',
-            'diagnostic'       => 'nullable|string',
-            'notes'            => 'nullable|string',
-            'observations'     => 'nullable|string',
-            'actes'            => 'nullable|array',
+            'rendez_vous_id'            => 'nullable|exists:rendez_vous,id',
+            'date_consultation'         => 'required|date',
+            'motif'                     => 'required|string|max:255',
+            'diagnostic'                => 'nullable|string',
+            'notes'                     => 'nullable|string',
+            'observations'              => 'nullable|string',
+            'actes'                     => 'nullable|array',
             'actes.*.catalogue_acte_id' => 'required|exists:catalogue_actes,id',
             'actes.*.quantite'          => 'required|integer|min:1',
             'actes.*.prix_unitaire'     => 'required|numeric|min:0',
@@ -145,8 +147,8 @@ class DentisteDossierController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $consultation->load('actes.catalogueActe'),
-            'message' => 'Consultation enregistrée.',
+            'data'    => $consultation->load(['actes.catalogueActe', 'dentiste:id,name']),
+            'message' => 'Consultation enregistrée avec succès.',
         ], 201);
     }
 
@@ -164,17 +166,57 @@ class DentisteDossierController extends Controller
         }
 
         $request->validate([
+            'motif'        => 'sometimes|string|max:255',
             'diagnostic'   => 'nullable|string',
             'notes'        => 'nullable|string',
             'observations' => 'nullable|string',
         ]);
 
-        $consultation->update($request->only(['diagnostic', 'notes', 'observations']));
+        $consultation->update($request->only(['motif', 'diagnostic', 'notes', 'observations']));
 
         return response()->json([
             'success' => true,
-            'data'    => $consultation->fresh()->load('actes.catalogueActe'),
+            'data'    => $consultation->fresh()->load(['actes.catalogueActe', 'dentiste:id,name']),
             'message' => 'Consultation mise à jour.',
+        ]);
+    }
+
+    /**
+     * DELETE /api/dentiste/dossiers/{patientId}/consultations/{consultationId}
+     * Supprime une consultation (uniquement si créée par ce dentiste et sans facture associée)
+     */
+    public function destroyConsultation(Request $request, int $patientId, int $consultationId): JsonResponse
+    {
+        $consultation = Consultation::where('id', $consultationId)
+            ->where('dentiste_id', $request->user()->id)
+            ->whereHas('dossierMedical', fn($q) => $q->where('patient_id', $patientId))
+            ->first();
+
+        if (!$consultation) {
+            return response()->json(['success' => false, 'message' => 'Consultation introuvable ou accès refusé.'], 404);
+        }
+
+        // Empêcher la suppression si une facture est liée
+        if ($consultation->factures()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Impossible de supprimer cette consultation : une facture y est associée.',
+            ], 422);
+        }
+
+        // Libérer le RDV lié si terminé
+        if ($consultation->rendez_vous_id) {
+            \App\Models\RendezVous::where('id', $consultation->rendez_vous_id)
+                ->where('statut', 'termine')
+                ->update(['statut' => 'confirme']);
+        }
+
+        $consultation->actes()->delete();
+        $consultation->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consultation supprimée.',
         ]);
     }
 }
