@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PdfController;
 use App\Http\Controllers\Api\CatalogueActeController;
 use App\Http\Controllers\Api\Dentiste\DentisteDossierController;
 use App\Http\Controllers\Api\Dentiste\DentisteOrdonnanceController;
@@ -65,10 +66,12 @@ Route::middleware('auth:sanctum')->group(function () {
         // Factures
         Route::get('/factures',        [PatientFactureController::class, 'index']);
         Route::get('/factures/{id}',   [PatientFactureController::class, 'show']);
+        Route::get('/factures/{id}/pdf', [PdfController::class, 'facture']);
 
         // Ordonnances
         Route::get('/ordonnances',     [PatientOrdonnanceController::class, 'index']);
         Route::get('/ordonnances/{id}',[PatientOrdonnanceController::class, 'show']);
+        Route::get('/ordonnances/{id}/pdf', [PdfController::class, 'ordonnance']);
     });
 
     // ── Espace Secrétaire ─────────────────────────────────────────────────────
@@ -111,6 +114,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/factures',                          [SecretaireFactureController::class, 'store']);
         Route::get('/factures/impayes',                   [SecretaireFactureController::class, 'impayes']);
         Route::get('/factures/{id}',                      [SecretaireFactureController::class, 'show']);
+        Route::get('/factures/{id}/pdf',                  [PdfController::class, 'facture']);
         Route::patch('/factures/{id}/annuler',            [SecretaireFactureController::class, 'annuler']);
         Route::post('/factures/{id}/paiements',           [SecretaireFactureController::class, 'storePaiement']);
     });
@@ -150,6 +154,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/ordonnances/{id}',                                            [DentisteOrdonnanceController::class, 'show']);
         Route::put('/ordonnances/{id}',                                            [DentisteOrdonnanceController::class, 'update']);
         Route::patch('/ordonnances/{id}/archive',                                  [DentisteOrdonnanceController::class, 'archive']);
+        Route::get('/ordonnances/{id}/pdf',                                        [PdfController::class, 'ordonnance']);
 
         // Statistiques
         Route::get('/statistiques',                                                [DentisteStatController::class, 'index']);

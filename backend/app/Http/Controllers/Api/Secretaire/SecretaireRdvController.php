@@ -83,7 +83,7 @@ class SecretaireRdvController extends Controller
         $request->validate([
             'patient_id'    => 'required|exists:patients,id',
             'dentiste_id'   => 'required|exists:users,id',
-            'date_heure'    => 'required|date|after:now',
+            'date_heure'    => 'required|date',
             'motif'         => 'required|string|max:255',
             'duree_minutes' => 'nullable|integer|min:15|max:240',
             'is_urgence'    => 'nullable|boolean',
