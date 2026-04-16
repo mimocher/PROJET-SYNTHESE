@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\PdfController;
 use App\Http\Controllers\Api\CatalogueActeController;
 use App\Http\Controllers\Api\Dentiste\DentisteDossierController;
@@ -58,7 +59,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/rdv',            [PatientRdvController::class, 'store']);
         Route::get('/rdv/creneaux',    [PatientRdvController::class, 'creneaux']);
         Route::get('/rdv/{id}',        [PatientRdvController::class, 'show']);
+        Route::patch('/rdv/{id}',      [PatientRdvController::class, 'update']);
         Route::delete('/rdv/{id}',     [PatientRdvController::class, 'destroy']);
+
+        // Chat
+        Route::get('/messages/unread', [ChatController::class, 'patientUnread']);
+        Route::get('/messages',        [ChatController::class, 'patientIndex']);
+        Route::post('/messages',       [ChatController::class, 'patientStore']);
 
         // Dossier médical (lecture seule)
         Route::get('/dossier',         [PatientDossierController::class, 'show']);
@@ -108,6 +115,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/conges',                             [SecretaireHoraireController::class, 'indexConges']);
         Route::post('/conges',                            [SecretaireHoraireController::class, 'storeConge']);
         Route::delete('/conges/{id}',                     [SecretaireHoraireController::class, 'destroyConge']);
+
+        // Chat secrétaire
+        Route::get('/messages/unread',      [ChatController::class, 'secretaireUnread']);
+        Route::get('/messages',             [ChatController::class, 'secretaireIndex']);
+        Route::get('/messages/{patientId}', [ChatController::class, 'secretaireShow']);
+        Route::post('/messages/{patientId}',[ChatController::class, 'secretaireStore']);
 
         // Factures & paiements (routes statiques AVANT les dynamiques)
         Route::get('/factures',                           [SecretaireFactureController::class, 'index']);

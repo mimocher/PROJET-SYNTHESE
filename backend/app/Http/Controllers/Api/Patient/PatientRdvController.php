@@ -111,6 +111,56 @@ class PatientRdvController extends Controller
     }
 
     /**
+     * PATCH /api/patient/rdv/{id}
+     * Modifier un RDV (seulement si statut = en_attente)
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $patient = $request->user()->patient;
+
+        $rdv = RendezVous::where('id', $id)->where('patient_id', $patient->id)->first();
+
+        if (!$rdv) {
+            return response()->json(['success' => false, 'message' => 'Rendez-vous introuvable.'], 404);
+        }
+
+        if ($rdv->statut !== 'en_attente') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce rendez-vous ne peut plus être modifié car il a déjà été confirmé ou traité.',
+            ], 422);
+        }
+
+        $request->validate([
+            'date_heure'    => 'sometimes|date',
+            'motif'         => 'sometimes|string|max:255',
+            'notes'         => 'nullable|string',
+            'duree_minutes' => 'sometimes|integer|in:15,30,45,60,90,120',
+        ]);
+
+        if ($request->date_heure && $request->date_heure !== $rdv->date_heure) {
+            $conflit = RendezVous::where('dentiste_id', $rdv->dentiste_id)
+                ->where('date_heure', $request->date_heure)
+                ->where('id', '!=', $id)
+                ->whereNotIn('statut', ['annule', 'absent'])
+                ->exists();
+
+            if ($conflit) {
+                return response()->json(['success' => false, 'message' => 'Ce créneau est déjà réservé.'], 422);
+            }
+        }
+
+        $rdv->update($request->only(['date_heure', 'motif', 'notes', 'duree_minutes']));
+        $rdv->load('dentiste:id,name');
+
+        return response()->json([
+            'success' => true,
+            'data'    => $this->formatRdv($rdv),
+            'message' => 'Rendez-vous modifié avec succès.',
+        ]);
+    }
+
+    /**
      * DELETE /api/patient/rdv/{id}
      * Annuler un RDV (24h minimum avant)
      */
